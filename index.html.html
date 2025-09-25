@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>S&Y</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            background-color: #000;
+            color: #fff;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #000;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+        .title-section {
+            text-align: center; 
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+        h1 { 
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+            line-height: 1.1;
+        }
+        .subtitle {
+            font-size: 1.0em;
+            color: #888;
+            margin-top: 5px;
+            line-height: 1.2;
+        }
+        #chat-window {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message-wrapper {
+            display: flex;
+            margin-bottom: 5px;
+        }
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            position: relative;
+            word-wrap: break-word;
+        }
+        .user-message-wrapper {
+            justify-content: flex-end;
+        }
+        .user-message-bubble {
+            background-color: #0B93F6;
+            color: #fff;
+            border-bottom-right-radius: 5px;
+            margin-right: 10px;
+        }
+        .ai-message-wrapper {
+            justify-content: flex-start;
+        }
+        .ai-message-bubble {
+            background-color: #333;
+            color: #fff;
+            border-bottom-left-radius: 5px;
+            margin-left: 10px;
+        }
+        .ai-response-container { 
+            margin-bottom: 20px; 
+            padding: 12px; 
+            border-radius: 18px; 
+            border: 1px solid #333;
+            background-color: #222;
+            color: #eee;
+        }
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border-bottom-left-radius: 5px;
+            max-width: 100px;
+            margin-left: 10px;
+        }
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background-color: #888;
+            border-radius: 50%;
+            margin: 0 3px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        .risk-section { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 15px; 
+            font-size: 0.9em; 
+            border-top: 1px solid #3a3a3c; 
+            margin-top: 15px; 
+            padding-top: 15px; 
+            color: #bbb;
+        }
+        .risk-label { margin-right: 10px; font-weight: 600; color: #888; }
+        .suggestions-container { margin-top: 15px; }
+        .suggestions-container button {
+            display: block; width: 100%; text-align: left;
+            margin-top: 8px; padding: 10px 15px; border-radius: 18px;
+            border: none;
+            background-color: #444;
+            color: #fff;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .suggestions-container button:hover { background-color: #555; }
+        .final-answer { font-size: 0.95em; line-height: 1.5; color: #fff; }
+        .final-answer b { color: #0B93F6; }
+        #input-area { 
+            display: flex; 
+            padding: 15px; 
+            border-top: 1px solid #333; 
+            background-color: #000;
+        }
+        #user-input {
+            flex-grow: 1;
+            padding: 10px 18px;
+            border: 1px solid #555;
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 1em;
+            outline: none;
+            background-color: #333;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+        }
+        #user-input::placeholder { color: #888; }
+        #user-input:focus { border-color: #0B93F6; }
+        #send-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            background-color: #0B93F6;
+            color: white;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        #send-button:hover { background-color: #0A84E0; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="title-section">
+            <h1>S&Y</h1>
+            <p class="subtitle">Hallucination Guard</p>
+        </div>
+        <div id="chat-window"></div>
+        <div id="input-area">
+            <input type="text" id="user-input" placeholder="S&Y에게 말을 걸어보세요!">
+            <button id="send-button">전송</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+        const API_KEY = "AIzaSyCiHbtv5zFAsFc-ujc3YJb5Jme8-im4rKo"; // --- 여기에 본인의 API 키를 붙여넣으세요! ---
+        const genAI = new GoogleGenerativeAI(API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest"});
+
+        const sendButton = document.getElementById('send-button');
+        const userInput = document.getElementById('user-input');
+        const chatWindow = document.getElementById('chat-window');
+        
+        const greetings = ["안녕", "ㅎㅇ", "하이", "hi", "hello"];
+        
+        document.addEventListener('DOMContentLoaded', loadConversation);
+
+        sendButton.addEventListener('click', () => sendMessage(userInput.value));
+        userInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') sendMessage(userInput.value); });
+
+        async function sendMessage(questionText) {
+            const trimmedText = questionText.trim();
+            if (trimmedText === "") return;
+
+            displayUserMessage(trimmedText);
+            userInput.value = '';
+            
+            if (greetings.includes(trimmedText.toLowerCase())) {
+                const predefinedGreeting = { final_answer: "안녕하세요! 무엇을 도와드릴까요?" };
+                displayAiResponse(predefinedGreeting);
+                return;
+            }
+
+            const typingIndicatorWrapper = createTypingIndicator();
+            try {
+                const fullResponse = await getAiResponse(trimmedText);
+                typingIndicatorWrapper.remove();
+                displayAiResponse(fullResponse);
+            } catch (error) {
+                typingIndicatorWrapper.remove();
+                displayError(error);
+            }
+        }
+        
+        function saveConversation() {
+            localStorage.setItem('chatHistory_SY', chatWindow.innerHTML);
+        }
+
+        function loadConversation() {
+            const savedHistory = localStorage.getItem('chatHistory_SY');
+            if (savedHistory) {
+                chatWindow.innerHTML = savedHistory;
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            }
+        }
+
+        function displayUserMessage(message) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper user-message-wrapper';
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble user-message-bubble';
+            bubble.textContent = message;
+            wrapper.appendChild(bubble);
+            chatWindow.appendChild(wrapper);
+            saveConversation();
+        }
+
+        function createTypingIndicator() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper ai-message-wrapper';
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+            wrapper.appendChild(indicator);
+            chatWindow.appendChild(wrapper);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            return wrapper;
+        }
+
+        function displayAiResponse(response) {
+            if (!response) return;
+
+            const aiAnswerWrapper = document.createElement('div');
+            aiAnswerWrapper.className = 'message-wrapper ai-message-wrapper';
+            const aiAnswerBubble = document.createElement('div');
+            aiAnswerBubble.className = 'message-bubble ai-message-bubble';
+            aiAnswerBubble.innerHTML = response.final_answer.replace(/\n/g, '<br>');
+            aiAnswerWrapper.appendChild(aiAnswerBubble);
+            chatWindow.appendChild(aiAnswerWrapper);
+
+            if (response.risk_score !== undefined && response.suggestions) {
+                const aiResponseContainer = document.createElement('div');
+                aiResponseContainer.className = 'ai-response-container';
+                renderAnalysis(response, aiResponseContainer);
+                renderSuggestions(response.suggestions, aiResponseContainer);
+                chatWindow.appendChild(aiResponseContainer);
+            }
+
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            saveConversation();
+        }
+
+        function displayError(error) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper ai-message-wrapper';
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble ai-message-bubble';
+            bubble.style.backgroundColor = '#FF3B30';
+            bubble.textContent = `오류: ${error.message || error.toString()}`;
+            wrapper.appendChild(bubble);
+            chatWindow.appendChild(wrapper);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            console.error("Overall message processing error:", error);
+            saveConversation();
+        }
+        
+        async function getAiResponse(userQuestion) {
+            const prompt = `
+            당신은 '할루시네이션 분석 AI'입니다. 사용자의 질문에 대해 다음 세 가지 임무를 동시에 수행하고, 반드시 지정된 JSON 형식으로만 답변해야 합니다.
+            
+            1.  **최종 답변 (final_answer):**
+                * **[매우 중요] "오늘 날씨", "최신 뉴스" 등 실시간 정보가 필요한 질문에는 반드시 현재 날짜(2025년 9월 25일)를 기준으로 최신 정보를 검색하여 답변해야 합니다.**
+                * 사용자가 한국에 있을 확률이 높으므로, 지역 정보가 없는 질문에는 '한국의 수도인 서울'을 기준으로 가정하여 먼저 답변하고, 다른 지역 정보가 필요한지 되물어보세요.
+
+            2.  **할루시네이션 위험도 (risk_score):**
+                * 사용자의 질문이 얼마나 할루시네이션을 유발할 가능성이 높은지 0에서 100 사이의 숫자로 평가합니다.
+                * 만약 당신이 질문에 대한 직접적인 사실을 답변하지 못하고 회피하는 경우, risk_score는 반드시 75 이상이어야 합니다.
+
+            3.  **개선된 질문 제안 (suggestions):**
+                * 사용자가 더 정확한 답변을 얻기 위해 이어서 할 만한 질문 3가지를 '사용자의 입장에서' 제안합니다.
+
+            JSON 형식: {"risk_score": [숫자], "suggestions": ["추천질문1", "추천질문2", "추천질문3"], "final_answer": "최종 답변 내용"}
+            
+            사용자 질문: "${userQuestion}"
+            `;
+            try {
+                const result = await model.generateContent(prompt);
+                const text = result.response.text();
+                const jsonMatch = text.match(/\{.*\}/s);
+                if (jsonMatch) return JSON.parse(jsonMatch[0]);
+                throw new Error("AI가 유효한 JSON 응답을 생성하지 못했습니다.");
+            } catch (e) { 
+                throw new Error(`AI 호출 실패: ${e.message || e.toString()}`);
+            }
+        }
+        
+        function renderAnalysis(result, container) {
+            const fillPercentage = 100 - result.risk_score;
+            let fillColor = '#FF3B30'; let fillSegments = 1;
+            if (fillPercentage > 20) fillSegments = 2; 
+            if (fillPercentage > 40) { fillSegments = 3; fillColor = '#FF9500'; }
+            if (fillPercentage > 60) fillSegments = 4;
+            if (fillPercentage > 80) { fillSegments = 5; fillColor = '#34C759'; }
+            let segmentsHtml = '';
+            for (let i = 0; i < 5; i++) {
+                const color = i < fillSegments ? fillColor : '#444';
+                segmentsHtml += `<rect x="${3 + i * 20}" y="4" width="16" height="16" rx="6" ry="6" fill="${color}" />`;
+            }
+            const riskHtml = `<div class="risk-section"><span class="risk-label">위험도:</span><svg width="120" height="24" viewBox="0 0 120 24"><rect x="1" y="2" width="108" height="20" rx="8" ry="8" fill="none" stroke="#636366" stroke-width="2px" />${segmentsHtml}</svg></div>`;
+            container.insertAdjacentHTML('beforeend', riskHtml);
+        }
+
+        function renderSuggestions(suggestions, container) {
+            const suggestionsContainer = document.createElement('div');
+            suggestionsContainer.className = 'suggestions-container';
+            suggestions.forEach(q => {
+                const button = document.createElement('button');
+                button.textContent = q;
+                button.addEventListener('click', () => sendMessage(q));
+                suggestionsContainer.appendChild(button);
+            });
+            container.appendChild(suggestionsContainer);
+        }
+    </script>
+
+</body>
+</html>
